@@ -11,6 +11,5 @@ module.exports = class Strategy1 extends BaseStrategy {
     } else if (this.imIn && candle.ema100 > candle.high) {
       this.sell(candle);
     }
-    // console.log(candle);
   }
 };

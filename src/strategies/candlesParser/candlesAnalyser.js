@@ -4,7 +4,7 @@ const OFFSET = 50;
 
 module.exports = function(candles, index) {
   let results = {
-    openTime: candles[index].openTime,
+    openTime: candles[index].openTime / 1000,
     open: parseFloat(candles[index].open),
     high: parseFloat(candles[index].high),
     low: parseFloat(candles[index].low),

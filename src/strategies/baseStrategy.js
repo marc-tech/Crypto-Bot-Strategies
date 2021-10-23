@@ -38,7 +38,6 @@ module.exports = class BaseStrategy {
   }
 
   processRefChart(candle) {
-    console.log(this.currentMoney);
     let value = this.firstBuy
       ? this.currentMoney * parseFloat(candle.close)
       : this.currentMoney;
@@ -70,7 +69,7 @@ module.exports = class BaseStrategy {
     this.money = this.money / candle.close;
     this.lastBuy = candle.close;
     this.xAxisPlotLines.push({
-      value: candle.openTime,
+      value: candle.openTime / 1000,
       dashStyle: 'dash',
       width: 1,
       color: 'green'
@@ -82,7 +81,7 @@ module.exports = class BaseStrategy {
     this.money = this.money * candle.close;
     this.lastSell = candle.close;
     this.xAxisPlotLines.push({
-      value: candle.openTime,
+      value: candle.openTime / 1000,
       dashStyle: 'dash',
       width: 1,
       color: 'red'

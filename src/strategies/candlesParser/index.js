@@ -18,7 +18,7 @@ export default function(candles) {
 
 function mapCandleChart(candle) {
   return [
-    candle.openTime,
+    candle.openTime / 1000,
     parseFloat(candle.open),
     parseFloat(candle.high),
     parseFloat(candle.low),

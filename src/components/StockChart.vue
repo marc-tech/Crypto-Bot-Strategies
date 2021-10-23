@@ -1,12 +1,19 @@
 <template>
   <Card>
-    <highcharts :constructor-type="'stockChart'" :options="stockOptions" />
+    <highcharts
+      ref="Chart"
+      :constructor-type="'stockChart'"
+      :options="stockOptions"
+    />
   </Card>
 </template>
 
 <script>
 export default {
   name: 'UIStockChart',
+  mounted() {
+    this.$emit('onChart', this.$refs.Chart);
+  },
   props: {
     symbol: {
       type: String,

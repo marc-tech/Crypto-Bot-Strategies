@@ -1,36 +1,23 @@
 <template>
   <div>
-    <highcharts :options="chartOptions"></highcharts>
+    <highcharts
+      ref="Chart"
+      :constructor-type="'stockChart'"
+      :options="chartOptions"
+    ></highcharts>
   </div>
 </template>
 
 <script>
 export default {
-  props: {
-    chart: {
-      type: Array,
-      default: () => []
-    },
-    refChart: {
-      type: Array,
-      default: () => []
-    }
+  mounted() {
+    this.$emit('onChart', this.$refs.Chart);
   },
-  data() {
-    return {
-      chartOptions: {
-        series: [
-          {
-            color: 'black',
-            data: this.refChart.map(e => e[1])
-          },
-          {
-            color: 'green',
-            data: this.chart.map(e => e[1])
-          }
-        ]
-      }
-    };
+  props: {
+    chartOptions: {
+      type: Object,
+      default: {}
+    }
   }
 };
 </script>
