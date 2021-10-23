@@ -1,0 +1,10 @@
+diff --git a/node_modules/vue-chartjs/es/BaseCharts.js b/node_modules/vue-chartjs/es/BaseCharts.js
+index 885d1fa..50d8400 100644
+--- a/node_modules/vue-chartjs/es/BaseCharts.js
++++ b/node_modules/vue-chartjs/es/BaseCharts.js
+@@ -1,4 +1,4 @@
+-import Chart from 'chart.js';
++import Chart from 'chart.js/auto';
+ export function generateChart(chartId, chartType) {
+   return {
+     render: function render(createElement) {
