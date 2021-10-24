@@ -8,13 +8,16 @@
         <Items
           @itemClick="e => $emit('itemClick', e)"
           :list="item[1]"
+          :selectedSeries="selectedSeries"
           :parentName="parentName ? parentName + '.' + item[0] : item[0]"
           class="px-2"
         />
       </div>
       <div v-else class="flex justify-between">
         <div class="cursor-pointer" @click="itemClick(item[0])">
-          <strong>
+          <strong
+            :class="{ 'text-green-300': selectedSeries.includes(item[0]) }"
+          >
             {{ item[0] }}
           </strong>
         </div>
@@ -53,6 +56,10 @@ export default {
     parentName: {
       type: String,
       default: ''
+    },
+    selectedSeries: {
+      type: Array,
+      default: () => []
     }
   }
 };
