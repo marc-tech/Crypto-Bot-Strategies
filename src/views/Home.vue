@@ -1,8 +1,17 @@
 <template>
   <div class="home">
-    <button @click="fetchCandles()">fetch candles</button>
-    <button @click="clearChart()">clear</button>
+    <!-- <button @click="clearChart()">clear</button> -->
+    <select v-model="interval">
+      <option value="1m">1m</option>
+      <option value="3m">3m</option>
+      <option value="5m">5m</option>
+      <option value="15m">15m</option>
+      <option value="1h">1h</option>
+      <option value="4h">4h</option>
+      <option value="1d">1d</option>
+    </select>
     <input v-model="symbol" />
+    <button @click="fetchCandles()">RUN</button>
 
     <!-- <CandlesChart
       v-if="candlesChart.length"
@@ -23,9 +32,9 @@
       :chartOptions="candlesStockChart"
       @onChart="chart => charts.push(chart)"
     />
-    <button @click="runStrategy()">Run Strategy</button>
-
-    <h1>{{ gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2) }}$</h1>
+    <h3 :style="`color: ${gain ? 'green' : 'red'}`">
+      {{ gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2) }}$
+    </h3>
     <Chart
       v-if="strategyChart"
       :chartOptions="strategyChart"
@@ -45,10 +54,10 @@ export default {
   components: { CandlesChart, Chart, StockChart },
   async created() {
     await this.fetchCandles();
-    this.runStrategy();
   },
   methods: {
     runStrategy() {
+      this.strategyChart = null;
       let Strategy = new StrategiesRunner.Strategies[0]();
       const {
         refChart,
@@ -97,7 +106,6 @@ export default {
       const { candlesChart, analysedCandles } = StrategiesRunner.CandlesParser(
         candles
       );
-
       this.candlesStockChart = {
         xAxis: {
           events: {
@@ -108,9 +116,6 @@ export default {
         },
         credits: {
           enabled: false
-        },
-        title: {
-          text: this.symbol
         },
         // series: [{ data: [...Array(100)].map(Math.random) }]
         series: [
@@ -123,20 +128,41 @@ export default {
               valueDecimals: 2
             }
           },
+          // {
+          //   type: 'line',
+          //   threshold: null,
+          //   data: analysedCandles
+          //     .filter(e => e.ema20)
+          //     .map(e => [e.openTime, e.ema100]),
+          //   tooltip: {
+          //     valueDecimals: 2
+          //   }
+          // },
           {
             type: 'line',
+            color: 'green',
             threshold: null,
             data: analysedCandles
-              .map(e => [e.openTime, e.ema100 ? e.ema100 : 0])
-              .filter(e => e[1]),
+              .filter(e => e.ichimokuCloud)
+              .map(e => [e.openTime, e.ichimokuCloud.spanA]),
             tooltip: {
               valueDecimals: 2
             }
+          },
+          {
+            type: 'line',
+            color: 'red',
+            threshold: null,
+            data: analysedCandles
+              .filter(e => e.ichimokuCloud)
+              .map(e => [e.openTime, e.ichimokuCloud.spanB])
           }
         ]
       };
       this.analysedCandles = analysedCandles;
       this.rsi = analysedCandles.map(e => [e.openTime, e.rsi ? e.rsi : 0]);
+
+      this.runStrategy();
     },
     updateExtremes({ min, max }, index) {
       this.charts[0].chart.xAxis[0].setExtremes(min, max);

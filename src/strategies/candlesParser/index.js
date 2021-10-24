@@ -8,20 +8,26 @@ export default function(candles) {
   let index = 0;
 
   for (const candle of candles) {
-    results.candlesChart.push(mapCandleChart(candle));
-    results.analysedCandles.push(candleAnalyser(candles, index));
+    const analysedCandles = candleAnalyser(candles, index);
+    results.candlesChart.push(mapCandleChart(candle, analysedCandles));
+    results.analysedCandles.push(analysedCandles);
     index++;
   }
 
   return results;
 }
 
-function mapCandleChart(candle) {
-  return [
-    candle.openTime / 1000,
-    parseFloat(candle.open),
-    parseFloat(candle.high),
-    parseFloat(candle.low),
-    parseFloat(candle.close)
-  ];
+function mapCandleChart(candle, analysedCandles) {
+  return {
+    x: candle.openTime,
+    open: parseFloat(candle.open),
+    high: parseFloat(candle.high),
+    low: parseFloat(candle.low),
+    close: parseFloat(candle.close),
+    color: getColor(analysedCandles.sentiment)
+  };
+}
+
+function getColor(sentiment) {
+  return `#ff${sentiment.toString(16)}00`;
 }

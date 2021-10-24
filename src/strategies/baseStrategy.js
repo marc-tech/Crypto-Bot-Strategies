@@ -60,6 +60,10 @@ module.exports = class BaseStrategy {
     return strategyMoney - refMoney;
   }
 
+  calculateChange(a, b) {
+    return ((a - b) / b) * 100
+  }
+
   buy(candle) {
     this.imIn = true;
     if (!this.firstBuy) {
@@ -69,7 +73,7 @@ module.exports = class BaseStrategy {
     this.money = this.money / candle.close;
     this.lastBuy = candle.close;
     this.xAxisPlotLines.push({
-      value: candle.openTime / 1000,
+      value: candle.openTime,
       dashStyle: 'dash',
       width: 1,
       color: 'green'
@@ -81,7 +85,7 @@ module.exports = class BaseStrategy {
     this.money = this.money * candle.close;
     this.lastSell = candle.close;
     this.xAxisPlotLines.push({
-      value: candle.openTime / 1000,
+      value: candle.openTime,
       dashStyle: 'dash',
       width: 1,
       color: 'red'

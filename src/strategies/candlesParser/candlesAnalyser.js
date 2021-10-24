@@ -1,14 +1,15 @@
 // const indicators = require('slz-indicators');
-var RSI = require('technicalindicators').RSI;
+var TI = require('technicalindicators');
 const OFFSET = 50;
 
 module.exports = function(candles, index) {
   let results = {
-    openTime: candles[index].openTime / 1000,
+    openTime: candles[index].openTime,
     open: parseFloat(candles[index].open),
     high: parseFloat(candles[index].high),
     low: parseFloat(candles[index].low),
-    close: parseFloat(candles[index].close)
+    close: parseFloat(candles[index].close),
+    sentiment: 0
   };
 
   // =================================================================
@@ -16,19 +17,103 @@ module.exports = function(candles, index) {
   // =================================================================
   if (index > 150) {
     results = { ...results, ...getMedians(candles, index) };
+    results.goUp = goUp(candles, index);
   }
   if (index > 50) {
-    let values = candles.slice(index - 50, index).map(e => e.close);
-    let rsi = RSI.calculate({ values, period: 14 });
+    let rsi = TI.RSI.calculate({
+      values: candles.slice(index - 22, index).map(e => e.close),
+      period: 14
+    });
     results.rsi = rsi[rsi.length - 1];
+
+    let averageGain = TI.AverageGain.calculate({
+      values: candles.slice(index - 33, index).map(e => e.close),
+      period: 14
+    });
+    results.averageGain = averageGain[averageGain.length - 1];
+
+    let averageLoss = TI.AverageLoss.calculate({
+      values: candles.slice(index - 16, index).map(e => e.close),
+      period: 6
+    });
+    results.averageLoss = averageLoss[averageLoss.length - 1];
   }
 
+  results.gravestonedoji = TI.gravestonedoji({
+    open: [candles[index].open],
+    high: [candles[index].high],
+    close: [candles[index].close],
+    low: [candles[index].low]
+  });
+
+  if (index > 170) {
+    results.ichimokuCloud = new TI.IchimokuCloud({
+      high: candles.slice(index - 166, index).map(e => parseFloat(e.high)),
+      low: candles.slice(index - 166, index).map(e => parseFloat(e.low)),
+      conversionPeriod: 9,
+      basePeriod: 26,
+      spanPeriod: 52,
+      displacement: 26
+    });
+    results.ichimokuCloud =
+      results.ichimokuCloud.result[results.ichimokuCloud.result.length - 1];
+  }
+
+  calculateSentiment(results);
   return results;
 };
 
+function calculateSentiment(results) {
+  // this function can also be override the sentiment go to 0 to 255 (red to green)
+  if (results.rsi) {
+    results.sentiment += parseInt(results.rsi) * 2;
+  }
+
+  if (results.goUp) {
+    results.sentiment += 20;
+  }
+
+  if (
+    results.ichimokuCloud &&
+    results.ichimokuCloud.spanA > results.ichimokuCloud.spanB
+  ) {
+    results.sentiment += 20;
+  } else if (results.ichimokuCloud) {
+    results.sentiment -= 20;
+  }
+
+  if (results.gravestonedoji) {
+    results.sentiment += 80;
+  }
+
+  results.sentiment += 40;
+
+  if (results.sentiment > 255) {
+    console.log(results.sentiment);
+    results.sentiment = 255;
+  }
+}
+
+function goUp(candles, index) {
+  let ema1 = 0;
+  let ema2 = 0;
+  for (let i = 0; i <= 100; i++) {
+    ema1 += parseFloat(candles[index - i].close);
+    ema2 += parseFloat(candles[index - i - 1].close);
+  }
+
+  ema1 = ema1 / 100;
+  ema2 = ema2 / 100;
+
+  if (ema1 > ema2) {
+    return true;
+  }
+  return false;
+}
+
 function getMedians(candles, index) {
   // const lengths = ['9', '26', '50', '100', '150'];
-  const lengths = ['100'];
+  const lengths = ['20', '50', '100'];
   let lengthsIndex = 0;
   let results = {};
 
