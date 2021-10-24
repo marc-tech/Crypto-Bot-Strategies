@@ -6,11 +6,13 @@ module.exports = class Strategy1 extends BaseStrategy {
   }
 
   run(candle) {
-    console.log(candle.averageGain);
-    if (!this.imIn && candle.ema20 < candle.high) {
+    if (!this.imIn && candle.sentiment < 120 && candle.ema50 < candle.high) {
       this.buy(candle);
-    } else if (this.imIn && candle.ema20 > candle.low) {
-      // console.log('sell', candle.averageLoss);
+    } else if (
+      this.imIn &&
+      ((candle.sentiment > 160 && candle.ema20 > candle.low) ||
+        candle.sentiment > 200)
+    ) {
       this.sell(candle);
     }
   }

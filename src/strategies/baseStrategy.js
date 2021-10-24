@@ -20,7 +20,7 @@ module.exports = class BaseStrategy {
     let index = 0;
 
     for (const candle of analysedCandles) {
-      if (index > 150) {
+      if (index > 200) {
         this.run(candle);
       }
 
@@ -61,7 +61,7 @@ module.exports = class BaseStrategy {
   }
 
   calculateChange(a, b) {
-    return ((a - b) / b) * 100
+    return ((a - b) / b) * 100;
   }
 
   buy(candle) {

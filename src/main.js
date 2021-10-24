@@ -5,6 +5,7 @@ import Binance from 'binance-api-node';
 import Highcharts from 'highcharts';
 import HighchartsVue from 'highcharts-vue';
 import stockInit from 'highcharts/modules/stock';
+import '@/displayer/index.css';
 
 if (typeof Highcharts === 'object') {
   stockInit(Highcharts);

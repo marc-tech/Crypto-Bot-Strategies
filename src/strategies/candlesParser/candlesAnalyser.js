@@ -12,32 +12,11 @@ module.exports = function(candles, index) {
     sentiment: 0
   };
 
-  // =================================================================
-  // medians
-  // =================================================================
-  if (index > 150) {
-    results = { ...results, ...getMedians(candles, index) };
-    results.goUp = goUp(candles, index);
-  }
-  if (index > 50) {
-    let rsi = TI.RSI.calculate({
-      values: candles.slice(index - 22, index).map(e => e.close),
-      period: 14
-    });
-    results.rsi = rsi[rsi.length - 1];
-
-    let averageGain = TI.AverageGain.calculate({
-      values: candles.slice(index - 33, index).map(e => e.close),
-      period: 14
-    });
-    results.averageGain = averageGain[averageGain.length - 1];
-
-    let averageLoss = TI.AverageLoss.calculate({
-      values: candles.slice(index - 16, index).map(e => e.close),
-      period: 6
-    });
-    results.averageLoss = averageLoss[averageLoss.length - 1];
-  }
+  RSI(candles, index, results);
+  AverageGain(candles, index, results);
+  AverageLoss(candles, index, results);
+  goUp(candles, index, results);
+  getMedians(candles, index, results);
 
   results.gravestonedoji = TI.gravestonedoji({
     open: [candles[index].open],
@@ -63,6 +42,14 @@ module.exports = function(candles, index) {
   return results;
 };
 
+/**
+ * This function take all the info of the results and try to make a number between 0 and 255
+ * where 0 you have a lot of buy signals and 255 a lot of sell signals.
+ * (0 = red ; 255 = green)
+ *
+ * @param {string} result - the result object with all calculation
+ *
+ */
 function calculateSentiment(results) {
   // this function can also be override the sentiment go to 0 to 255 (red to green)
   if (results.rsi) {
@@ -89,55 +76,148 @@ function calculateSentiment(results) {
   results.sentiment += 40;
 
   if (results.sentiment > 255) {
-    console.log(results.sentiment);
     results.sentiment = 255;
   }
 }
 
-function goUp(candles, index) {
-  let ema1 = 0;
-  let ema2 = 0;
-  for (let i = 0; i <= 100; i++) {
-    ema1 += parseFloat(candles[index - i].close);
-    ema2 += parseFloat(candles[index - i - 1].close);
+/**
+ * Relative strength index
+ *
+ * The relative strength index (RSI) is a momentum indicator used in
+ * technical analysis that measures the magnitude of recent price changes
+ * to evaluate overbought or oversold conditions in the price of a stock or other asset.
+ *
+ * @param {string} candles - the candles list
+ * @param {string} index - the current position
+ * @param {string} result - the object where to allocate the result
+ * @param {string} [period=14] - the period to make calculation
+ *
+ * @example
+ *
+ * RSI(candles, index, results)
+ */
+function RSI(candles, index, results, period = 14) {
+  if (index > period * 2) {
+    let rsi = TI.RSI.calculate({
+      values: candles.slice(index - period * 2, index).map(e => e.close),
+      period
+    });
+    results.rsi = rsi[rsi.length - 1];
   }
-
-  ema1 = ema1 / 100;
-  ema2 = ema2 / 100;
-
-  if (ema1 > ema2) {
-    return true;
-  }
-  return false;
 }
 
-function getMedians(candles, index) {
-  // const lengths = ['9', '26', '50', '100', '150'];
-  const lengths = ['20', '50', '100'];
-  let lengthsIndex = 0;
-  let results = {};
+/**
+ * Average Gain off a period.
+ *
+ * @param {string} candles - the candles list
+ * @param {string} index - the current position
+ * @param {string} result - the object where to allocate the result
+ * @param {string} [period=14] - the period to make calculation
+ *
+ * @example
+ *
+ * AverageGain(candles, index, results)
+ */
+function AverageGain(candles, index, results, period = 14) {
+  if (index > period * 2) {
+    let averageGain = TI.AverageGain.calculate({
+      values: candles.slice(index - period * 2, index).map(e => e.close),
+      period
+    });
+    results.averageGain = averageGain[averageGain.length - 1];
+  }
+}
 
-  let ema = 0;
-  let open = 0;
-  let high = 0;
-  let low = 0;
+/**
+ * Average Loss off a period.
+ *
+ * @param {string} candles - the candles list
+ * @param {string} index - the current position
+ * @param {string} result - the object where to allocate the result
+ * @param {string} [period=6] - the period to make calculation
+ *
+ * @example
+ *
+ * AverageLoss(candles, index, results)
+ */
+function AverageLoss(candles, index, results, period = 6) {
+  if (index > period * 2) {
+    let averageLoss = TI.AverageLoss.calculate({
+      values: candles.slice(index - period * 2, index).map(e => e.close),
+      period
+    });
+    results.averageLoss = averageLoss[averageLoss.length - 1];
+  }
+}
 
-  for (let i = 0; i <= parseFloat(lengths[lengths.length - 1]); i++) {
-    ema += parseFloat(candles[index - i].close);
-    open += parseFloat(candles[index - i].open);
-    high += parseFloat(candles[index - i].high);
-    low += parseFloat(candles[index - i].low);
+/**
+ * True if market direction is up.
+ *
+ * @param {string} candles - the candles list
+ * @param {string} index - the current position
+ * @param {string} result - the object where to allocate the result
+ *
+ * @example
+ *
+ * goUp(candles, index)
+ */
+function goUp(candles, index, results) {
+  if (index > 150) {
+    let ema1 = 0;
+    let ema2 = 0;
+    for (let i = 0; i <= 100; i++) {
+      ema1 += parseFloat(candles[index - i].close);
+      ema2 += parseFloat(candles[index - i - 1].close);
+    }
 
-    if (i == parseInt(lengths[lengthsIndex])) {
-      results['ema' + lengths[lengthsIndex]] = ema / (i + 1);
-      results['open' + lengths[lengthsIndex]] = open / (i + 1);
-      results['high' + lengths[lengthsIndex]] = high / (i + 1);
-      results['low' + lengths[lengthsIndex]] = low / (i + 1);
-      lengthsIndex++;
+    ema1 = ema1 / 100;
+    ema2 = ema2 / 100;
+
+    if (ema1 > ema2) {
+      results.goUp = true;
+    } else {
+      results.goUp = false;
     }
   }
+}
 
-  return results;
+/**
+ * Get the median values of a range on multiple period.
+ *
+ * @param {string} candles - the candles list
+ * @param {string} index - the current position
+ * @param {string} result - the object where to allocate the result
+ *
+ * @example
+ *
+ * getMedians(candles, index)
+ */
+function getMedians(candles, index, results) {
+  // const lengths = ['9', '26', '50', '100', '150'];
+  const lengths = ['20', '50', '100'];
+  if (index > parseInt(lengths[lengths.length - 1])) {
+    let lengthsIndex = 0;
+
+    let ema = 0;
+    let open = 0;
+    let high = 0;
+    let low = 0;
+
+    for (let i = 0; i <= parseFloat(lengths[lengths.length - 1]); i++) {
+      ema += parseFloat(candles[index - i].close);
+      open += parseFloat(candles[index - i].open);
+      high += parseFloat(candles[index - i].high);
+      low += parseFloat(candles[index - i].low);
+
+      if (i == parseInt(lengths[lengthsIndex])) {
+        results['ema' + lengths[lengthsIndex]] = ema / (i + 1);
+        results['open' + lengths[lengthsIndex]] = open / (i + 1);
+        results['high' + lengths[lengthsIndex]] = high / (i + 1);
+        results['low' + lengths[lengthsIndex]] = low / (i + 1);
+        lengthsIndex++;
+      }
+    }
+  }
 }
 
 const tmp = new (class candleAnalyser {

@@ -4,7 +4,9 @@ A Binance crpto bot, easy to make new strategies
 
 ![alt text](https://github.com/marc-tech/Crypto-Bot-Strategies/blob/master/screen1.PNG)
 
-> :warning: **SETUP BINANCE KEY**: you need to put your binance apis key in .env.local (follow the .env template)
+> **SETUP BINANCE KEY**: you need to put your binance apis key in .env.local (follow the .env template)
+
+> :warning: **THE BOT WILL NOT TRADE JUST TAKE BINANCE CANDLES DATA**
 
 ## Project setup
 
