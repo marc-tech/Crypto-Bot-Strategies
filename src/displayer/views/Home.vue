@@ -33,13 +33,17 @@
       @onChart="chart => charts.push(chart)"
     />
     <h3 :style="`color: ${gain ? 'green' : 'red'}`">
-      {{ gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2) }}$
+      <!-- {{ gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2) }}$ -->
+      {{ gain }}
     </h3>
-    <Chart
-      v-if="strategyChart"
-      :chartOptions="strategyChart"
-      @onChart="chart => charts.push(chart)"
-    />
+    <div v-if="strategiesChart.length">
+      <Chart
+        v-for="(strategyChart, index) in strategiesChart"
+        :key="index"
+        :chartOptions="strategyChart"
+        @onChart="chart => charts.push(chart)"
+      />
+    </div>
   </div>
 </template>
 
@@ -56,44 +60,46 @@ export default {
     await this.fetchCandles();
   },
   methods: {
-    runStrategy() {
-      this.strategyChart = null;
-      let Strategy = new StrategiesRunner.Strategies[0]();
-      const {
-        refChart,
-        strategyChart,
-        xAxisPlotLines,
-        gain
-      } = Strategy.parseCandles(this.analysedCandles);
+    runStrategies() {
+      this.strategiesChart = [];
+      for (const Strategy of StrategiesRunner.Strategies) {
+        const strategy = new Strategy();
+        const {
+          refChart,
+          strategyChart,
+          xAxisPlotLines,
+          gain
+        } = strategy.parseCandles(this.analysedCandles);
 
-      this.strategyChart = {
-        xAxis: {
-          type: 'datetime',
-          plotLines: xAxisPlotLines,
-          events: {
-            afterSetExtremes: e => {
-              this.updateExtremes(e, 0);
+        this.gain += ' ' + gain;
+        this.strategiesChart.push({
+          xAxis: {
+            type: 'datetime',
+            plotLines: xAxisPlotLines,
+            events: {
+              afterSetExtremes: e => {
+                this.updateExtremes(e);
+              }
             }
-          }
-        },
-        series: [
-          {
-            type: 'line',
-            color: 'black',
-            data: refChart
           },
-          {
-            type: 'line',
-            color: 'green',
-            data: strategyChart
-          }
-        ]
-      };
-      this.gain = gain;
+          series: [
+            {
+              type: 'line',
+              color: 'black',
+              data: refChart
+            },
+            {
+              type: 'line',
+              color: 'green',
+              data: strategyChart
+            }
+          ]
+        });
+      }
     },
     clearChart() {
       this.candlesStockChart = null;
-      this.strategyChart = null;
+      this.strategiesChart = [];
       this.charts = [];
     },
     async fetchCandles() {
@@ -110,7 +116,7 @@ export default {
         xAxis: {
           events: {
             afterSetExtremes: e => {
-              this.updateExtremes(e, 1);
+              this.updateExtremes(e);
             }
           }
         },
@@ -162,11 +168,12 @@ export default {
       this.analysedCandles = analysedCandles;
       this.rsi = analysedCandles.map(e => [e.openTime, e.rsi ? e.rsi : 0]);
 
-      this.runStrategy();
+      this.runStrategies();
     },
-    updateExtremes({ min, max }, index) {
-      this.charts[0].chart.xAxis[0].setExtremes(min, max);
-      this.charts[1].chart.xAxis[0].setExtremes(min, max);
+    updateExtremes({ min, max }) {
+      for (const chart of this.charts) {
+        chart.chart.xAxis[0].setExtremes(min, max);
+      }
     }
   },
   data() {
@@ -178,8 +185,8 @@ export default {
       analysedCandles: [],
       rsi: [],
       candlesStockChart: null,
-      strategyChart: null,
-      gain: 0
+      strategiesChart: [],
+      gain: ''
     };
   }
 };
