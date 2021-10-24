@@ -45,9 +45,9 @@
 
 <script>
 import StrategiesRunner from '@/strategies';
-import CandlesChart from '@/components/CandlesChart';
-import StockChart from '@/components/StockChart';
-import Chart from '@/components/Chart';
+import CandlesChart from '@/displayer/components/CandlesChart';
+import StockChart from '@/displayer/components/StockChart';
+import Chart from '@/displayer/components/Chart';
 
 export default {
   name: 'Home',

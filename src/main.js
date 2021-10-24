@@ -1,6 +1,6 @@
 import Vue from 'vue';
-import App from './App.vue';
-import router from './router';
+import App from '@/displayer/App.vue';
+import router from '@/displayer/router';
 import Binance from 'binance-api-node';
 import Highcharts from 'highcharts';
 import HighchartsVue from 'highcharts-vue';
@@ -16,7 +16,7 @@ Vue.config.productionTip = false;
 Vue.prototype.$binanceApi = Binance({
   useServerTime: true,
   apiKey: process.env.VUE_APP_BINANCE_API_KEY,
-  apiSecret: process.env.VUE_APP_BINANCE_API_SECRET,
+  apiSecret: process.env.VUE_APP_BINANCE_API_SECRET
 });
 
 new Vue({
