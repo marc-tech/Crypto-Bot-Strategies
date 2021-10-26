@@ -1,5 +1,5 @@
 // const indicators = require('slz-indicators');
-var TI = require('technicalindicators');
+const TI = require('technicalindicators');
 const OFFSET = 50;
 
 module.exports = function(candles, index) {
@@ -11,6 +11,7 @@ module.exports = function(candles, index) {
     close: parseFloat(candles[index].close),
     sentiment: 0
   };
+  candles[index] = results;
 
   RSI(candles, index, results);
   AverageGain(candles, index, results);
@@ -18,14 +19,136 @@ module.exports = function(candles, index) {
   goUp(candles, index, results);
   getMedians(candles, index, results);
 
-  results.gravestonedoji = TI.gravestonedoji({
-    open: [candles[index].open],
-    high: [candles[index].high],
-    close: [candles[index].close],
-    low: [candles[index].low]
-  });
+  // const fiveCandlesTab = getFiveCandlesTab(candles, index);
+  const threeCandlesTab = getThreeCandlesTab(candles, index);
+  const twoCandlesTab = getTwoCandlesTab(candles, index);
+  const candleTab = getCadleTab(candles, index);
+
+  index > 13 &&
+    (results.sma = TI.sma({
+      values: candles.slice(index - 13, index).map(e => e.close),
+      period: 8
+    }).at(-1));
+
+  index > 15 &&
+    (results.ema = TI.ema({
+      values: candles.slice(index - 15, index).map(e => e.close),
+      period: 8
+    }).at(-1));
+  index > 15 &&
+    (results.wma = TI.wma({
+      values: candles.slice(index - 15, index).map(e => e.close),
+      period: 8
+    }).at(-1));
+
+  index > 11 &&
+    (results.wema = TI.wema({
+      values: candles.slice(index - 11, index).map(e => e.close),
+      period: 5
+    }).at(-1));
+
+  index > 18 &&
+    (results.macd = TI.macd({
+      values: candles.slice(index - 18, index).map(e => e.close),
+      fastPeriod: 5,
+      slowPeriod: 8,
+      signalPeriod: 3,
+      SimpleMAOscillator: false,
+      SimpleMASignal: false
+    }).at(-1));
+
+  index > 30 &&
+    (results.bollingerbands = TI.bollingerbands({
+      values: candles.slice(index - 30, index).map(e => e.close),
+      period: 14,
+      stdDev: 2
+    }).at(-1));
+
+  index > 47 &&
+    (results.adx = TI.adx({
+      close: candles.slice(index - 47, index).map(e => e.close),
+      high: candles.slice(index - 47, index).map(e => e.high),
+      low: candles.slice(index - 47, index).map(e => e.low),
+      period: 14
+    }).at(-1));
+  // export { atr, ATR } from './directionalmovement/ATR';
+  // export { truerange, TrueRange } from './directionalmovement/TrueRange';
+  // export { roc, ROC } from './momentum/ROC';
+  // export { kst, KST } from './momentum/KST';
+  // export { psar, PSAR } from './momentum/PSAR';
+  // export { stochastic, Stochastic } from './momentum/Stochastic';
+  // export { williamsr, WilliamsR } from './momentum/WilliamsR';
+  // export { adl, ADL } from './volume/ADL';
+  // export { obv, OBV } from './volume/OBV';
+  // export { trix, TRIX } from './momentum/TRIX';
+  // export { forceindex, ForceIndex } from './volume/ForceIndex';
+  // export { cci, CCI } from './oscillators/CCI';
+  // export { awesomeoscillator, AwesomeOscillator } from './oscillators/AwesomeOscillator';
+  // export { vwap, VWAP } from './volume/VWAP';
+  // export { volumeprofile, VolumeProfile } from './volume/VolumeProfile';
+  // export { mfi, MFI } from './volume/MFI';
+  // export { stochasticrsi, StochasticRSI } from './momentum/StochasticRSI';
+  // export { averagegain, AverageGain } from './Utils/AverageGain';
+  // export { averageloss, AverageLoss } from './Utils/AverageLoss';
+  // export { sd, SD } from './Utils/SD';
+  // export { highest, Highest } from './Utils/Highest';
+  // export { lowest, Lowest } from './Utils/Lowest';
+  // export { sum, Sum } from './Utils/Sum';
+  // export { crossUp, CrossUp } from './Utils/CrossUp';
+  // export { crossDown, CrossDown } from './Utils/CrossDown';
+
+  //candlestick
+  if (index > 5) {
+    // results.bearish = TI.bearish(twoCandlesTab);
+    results.abandonedbaby = TI.abandonedbaby(threeCandlesTab);
+    results.doji = TI.doji(candleTab);
+    results.bearishengulfingpatrn = TI.bearishengulfingpattern(twoCandlesTab);
+    results.bullishengulfingpattern = TI.bullishengulfingpattern(twoCandlesTab);
+    results.darkcloudcover = TI.darkcloudcover(twoCandlesTab);
+    results.downsidetasukigap = TI.downsidetasukigap(threeCandlesTab);
+    results.dragonflydoji = TI.dragonflydoji(candleTab);
+    results.gravestonedoji = TI.gravestonedoji(candleTab);
+    results.bullishharami = TI.bullishharami(twoCandlesTab);
+    results.bearishharami = TI.bearishharami(twoCandlesTab);
+    results.bullishharamicross = TI.bullishharamicross(twoCandlesTab);
+    results.bearishharamicross = TI.bearishharamicross(twoCandlesTab);
+    results.eveningdojistar = TI.eveningdojistar(threeCandlesTab);
+    results.eveningstar = TI.eveningstar(threeCandlesTab);
+    results.morningdojistar = TI.morningdojistar(threeCandlesTab);
+    results.morningstar = TI.morningstar(threeCandlesTab);
+    results.bullishmarubozu = TI.bullishmarubozu(twoCandlesTab);
+    results.bearishmarubozu = TI.bearishmarubozu(twoCandlesTab);
+    results.piercingline = TI.piercingline(twoCandlesTab);
+    results.bullishspinningtop = TI.bullishspinningtop(twoCandlesTab);
+    results.bearishspinningtop = TI.bearishspinningtop(twoCandlesTab);
+    results.threeblackcrows = TI.threeblackcrows(threeCandlesTab);
+    results.threewhitesoldiers = TI.threewhitesoldiers(threeCandlesTab);
+    results.bullishhammerstick = TI.bullishhammerstick(twoCandlesTab);
+    results.bearishhammerstick = TI.bearishhammerstick(twoCandlesTab);
+    results.bullishinvertedhammerstick = TI.bullishinvertedhammerstick(
+      twoCandlesTab
+    );
+    results.bearishinvertedhammerstick = TI.bearishinvertedhammerstick(
+      twoCandlesTab
+    );
+    // results.hammerpattern = TI.hammerpattern(threeCandlesTab);
+    // results.hammerpatternunconfirmed = TI.hammerpatternunconfirmed(
+    //   threeCandlesTab
+    // );
+    // results.hangingman = TI.hangingman(fiveCandlesTab);
+    // results.hangingmanunconfirmed = TI.hangingmanunconfirmed(fiveCandlesTab);
+    // results.shootingstar = TI.shootingstar(fiveCandlesTab);
+    // results.shootingstarunconfirmed = TI.shootingstarunconfirmed(
+    //   fiveCandlesTab
+    // );
+    // results.tweezertop = TI.tweezertop(fiveCandlesTab);
+    // results.tweezerbottom = TI.tweezerbottom(fiveCandlesTab);
+  }
 
   if (index > 170) {
+    // runWithValues(candles, index, 166, (values) => {
+    // })
+    // getPrevValue(length)
     results.ichimokuCloud = new TI.IchimokuCloud({
       high: candles.slice(index - 166, index).map(e => parseFloat(e.high)),
       low: candles.slice(index - 166, index).map(e => parseFloat(e.low)),
@@ -36,9 +159,34 @@ module.exports = function(candles, index) {
     });
     results.ichimokuCloud =
       results.ichimokuCloud.result[results.ichimokuCloud.result.length - 1];
+
+    candles[index] = results;
+
+    if (candles[index - 1].ichimokuCloudIsUpNumber == undefined) {
+      results.ichimokuCloudIsUpNumber = 0;
+    } else if (candles[index - 1].ichimokuCloudIsUpNumber >= 0) {
+      if (
+        candles[index].ichimokuCloud.spanA > candles[index].ichimokuCloud.spanB
+      ) {
+        candles[index].ichimokuCloudIsUpNumber =
+          candles[index - 1].ichimokuCloudIsUpNumber + 1;
+      } else {
+        candles[index].ichimokuCloudIsUpNumber = -1;
+      }
+    } else if (candles[index - 1].ichimokuCloudIsUpNumber < 0) {
+      if (
+        candles[index].ichimokuCloud.spanA < candles[index].ichimokuCloud.spanB
+      ) {
+        candles[index].ichimokuCloudIsUpNumber =
+          candles[index - 1].ichimokuCloudIsUpNumber - 1;
+      } else {
+        candles[index].ichimokuCloudIsUpNumber = 1;
+      }
+    }
   }
 
   calculateSentiment(results);
+  candles[index] = results;
   return results;
 };
 
@@ -78,6 +226,91 @@ function calculateSentiment(results) {
   if (results.sentiment > 255) {
     results.sentiment = 255;
   }
+}
+
+function runWithValues(candles, index, length, callback) {
+  if (index > length) {
+    candles.slice(index - 166, index).map(e => parseFloat(e.high));
+    callback(values);
+  }
+}
+
+function getFiveCandlesTab(candles, index) {
+  if (index > 5) {
+    return {
+      open: [
+        candles[index - 4].open,
+        candles[index - 3].open,
+        candles[index - 2].open,
+        candles[index - 1].open,
+        candles[index].open
+      ],
+      high: [
+        candles[index - 4].high,
+        candles[index - 3].high,
+        candles[index - 2].high,
+        candles[index - 1].high,
+        candles[index].high
+      ],
+      close: [
+        candles[index - 4].close,
+        candles[index - 3].close,
+        candles[index - 2].close,
+        candles[index - 1].close,
+        candles[index].close
+      ],
+      low: [
+        candles[index - 4].low,
+        candles[index - 3].low,
+        candles[index - 2].low,
+        candles[index - 1].low,
+        candles[index].low
+      ]
+    };
+  }
+}
+
+function getThreeCandlesTab(candles, index) {
+  if (index > 3) {
+    return {
+      open: [
+        candles[index - 2].open,
+        candles[index - 1].open,
+        candles[index].open
+      ],
+      high: [
+        candles[index - 2].high,
+        candles[index - 1].high,
+        candles[index].high
+      ],
+      close: [
+        candles[index - 2].close,
+        candles[index - 1].close,
+        candles[index].close
+      ],
+      low: [candles[index - 2].low, candles[index - 1].low, candles[index].low]
+    };
+  }
+}
+
+function getTwoCandlesTab(candles, index) {
+  if (index > 2) {
+    return {
+      open: [candles[index - 1].open, candles[index].open],
+      high: [candles[index - 1].high, candles[index].high],
+      close: [candles[index - 1].close, candles[index].close],
+      low: [candles[index - 1].low, candles[index].low]
+    };
+  }
+}
+
+function getCadleTab(candles, index) {
+  return {
+    open: [candles[index].open],
+    high: [candles[index].high],
+    close: [candles[index].close],
+    low: [candles[index].low]
+  };
 }
 
 /**

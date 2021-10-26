@@ -96,7 +96,7 @@ export default {
         this.strategiesChart.push({
           title: {
             text: gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2),
-            style: { color: gain ? 'green' : 'red' }
+            style: { color: parseFloat(gain) > 0 ? 'green' : 'red' }
           },
           xAxis: {
             type: 'datetime',
