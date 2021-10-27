@@ -1,15 +1,14 @@
 module.exports = class BaseStrategy {
   constructor(imIn = false, firstMise = 100) {
     this.firstMise = firstMise;
-    this.money = firstMise;
+    this.baseMoney = firstMise;
+    this.coinMoney = 0;
     this.currentMoney = firstMise;
     this.imIn = imIn;
     this.firstBuy = false;
     this.refChart = [];
     this.strategyChart = [];
     this.xAxisPlotLines = [];
-    this.lastBuy = 0;
-    this.lastSell = 0;
   }
 
   run(candle) {
@@ -39,16 +38,14 @@ module.exports = class BaseStrategy {
 
   processRefChart(candle) {
     let value = this.firstBuy
-      ? this.currentMoney * parseFloat(candle.close)
+      ? this.currentMoney * candle.close
       : this.currentMoney;
 
     this.refChart.push([candle.openTime, value]);
   }
 
   processStrategyChart(candle) {
-    let value = this.imIn
-      ? parseFloat(this.money) * parseFloat(candle.close)
-      : parseFloat(this.money);
+    let value = this.baseMoney + this.coinMoney * candle.close;
 
     this.strategyChart.push([candle.openTime, value]);
   }
@@ -60,35 +57,56 @@ module.exports = class BaseStrategy {
     return strategyMoney - refMoney;
   }
 
+  buy(candle, percent = 100) {
+    if (this.canBuy()) {
+      if (!this.firstBuy) {
+        this.currentMoney = this.currentMoney / candle.close;
+      }
+      this.firstBuy = true;
+
+      this.coinMoney += this.getPercent(percent, this.baseMoney) / candle.close;
+      this.baseMoney -= this.getPercent(percent, this.baseMoney);
+
+      this.xAxisPlotLines.push({
+        value: candle.openTime,
+        dashStyle: 'dash',
+        width: 1,
+        color: 'green'
+      });
+    }
+  }
+
+  canBuy() {
+    return this.baseMoney > 10;
+  }
+
+  sell(candle, percent = 100) {
+    if (this.canSell(candle.close)) {
+      this.baseMoney += this.getPercent(percent, this.coinMoney) * candle.close;
+      this.coinMoney -= this.getPercent(percent, this.coinMoney);
+
+      this.xAxisPlotLines.push({
+        value: candle.openTime,
+        dashStyle: 'dash',
+        width: 1,
+        color: 'red'
+      });
+    }
+  }
+
+  canSell(price) {
+    return this.coinMoney * price > 10;
+  }
+
+  scale(number, inMin, inMax, outMin = 0, outMax = 100) {
+    return ((number - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+  }
+
   calculateChange(a, b) {
     return ((a - b) / b) * 100;
   }
 
-  buy(candle) {
-    this.imIn = true;
-    if (!this.firstBuy) {
-      this.currentMoney = this.currentMoney / candle.close;
-    }
-    this.firstBuy = true;
-    this.money = this.money / candle.close;
-    this.lastBuy = candle.close;
-    this.xAxisPlotLines.push({
-      value: candle.openTime,
-      dashStyle: 'dash',
-      width: 1,
-      color: 'green'
-    });
-  }
-
-  sell(candle) {
-    this.imIn = false;
-    this.money = this.money * candle.close;
-    this.lastSell = candle.close;
-    this.xAxisPlotLines.push({
-      value: candle.openTime,
-      dashStyle: 'dash',
-      width: 1,
-      color: 'red'
-    });
+  getPercent(percent, nb) {
+    return (percent / 100) * nb;
   }
 };

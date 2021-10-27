@@ -19,15 +19,15 @@
       <Chart
         v-if="candlesStockChart"
         :chartOptions="candlesStockChart"
-        @onChart="chart => charts.push(chart)"
+        @onChart="addChart"
       />
-      <Chart v-if="selectedChart" :chartOptions="selectedChart" />
+      <!-- <Chart v-if="selectedChart" :chartOptions="selectedChart" /> -->
       <div v-if="strategiesChart.length">
         <Chart
           v-for="(strategyChart, index) in strategiesChart"
           :key="index"
           :chartOptions="strategyChart"
-          @onChart="chart => charts.push(chart)"
+          @onChart="addChart"
         />
       </div>
     </div>
@@ -66,6 +66,24 @@ export default {
     }
   },
   methods: {
+    addChart(newChart) {
+      this.charts.push(newChart.chart);
+    },
+    mouseOver(e) {
+      for (const chart of this.charts) {
+        // Find coordinates within the chart
+        const event = chart.pointer.normalize(e);
+        // Get the hovered point
+
+        for (const serie of chart.series) {
+          const point = serie.searchPoint(event, true);
+
+          if (point) {
+            point.highlight(e);
+          }
+        }
+      }
+    },
     handleItemChart(key) {
       let index = this.candlesStockChart.series.findIndex(e => e.name === key);
 
@@ -97,6 +115,15 @@ export default {
           title: {
             text: gain > 0 ? '+' + gain.toFixed(2) : gain.toFixed(2),
             style: { color: parseFloat(gain) > 0 ? 'green' : 'red' }
+          },
+          plotOptions: {
+            series: {
+              point: {
+                events: {
+                  mouseOver: this.mouseOver
+                }
+              }
+            }
           },
           xAxis: {
             type: 'datetime',
@@ -144,6 +171,7 @@ export default {
       this.candlesStockChart = {
         xAxis: {
           events: {
+            // setExtremes: this.syncExtremes,
             afterSetExtremes: e => {
               this.updateExtremes(e);
             }
@@ -165,6 +193,7 @@ export default {
                   this.candleData = analysedCandles.find(
                     c => c.openTime === e.target.x
                   );
+                  // this.mouseOver(e);
                 }
               }
             }
@@ -219,7 +248,7 @@ export default {
     },
     updateExtremes({ min, max }) {
       for (const chart of this.charts) {
-        chart.chart.xAxis[0].setExtremes(min, max);
+        chart.xAxis[0].setExtremes(min, max);
       }
     }
   },

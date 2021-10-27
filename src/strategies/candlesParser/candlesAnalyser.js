@@ -217,8 +217,26 @@ function calculateSentiment(results) {
     results.sentiment -= 20;
   }
 
-  if (results.gravestonedoji) {
-    results.sentiment += 80;
+  // if (results.gravestonedoji) {
+  //   results.sentiment += 80;
+  // }
+
+  if (results.ema100 < results.close) {
+    results.sentiment += 20;
+  } else {
+    results.sentiment -= 20;
+  }
+
+  if (results.ema50 < results.close) {
+    results.sentiment += 10;
+  } else {
+    results.sentiment -= 10;
+  }
+
+  if (results.ema20 < results.close) {
+    results.sentiment += 5;
+  } else {
+    results.sentiment -= 5;
   }
 
   results.sentiment += 40;
