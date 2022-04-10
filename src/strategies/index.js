@@ -1,10 +1,10 @@
-import CandlesParser from './candlesParser';
+import CandlesParserFunc from './candlesParser';
 import Strategy1 from './strategy1';
 import Strategy2 from './strategy2';
 
-const Strategies = [Strategy1];
+export const CandlesParser = candles => CandlesParserFunc(candles);
 
-export default {
-  CandlesParser: candles => CandlesParser(candles),
-  Strategies
-};
+export const Strategies = [
+  { name: 'marc', class: Strategy1 },
+  { name: 'Strategie de remi', class: Strategy2 }
+];

@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import App from '@/displayer/App.vue';
+import store from '@/displayer/store';
 import router from '@/displayer/router';
 import Binance from 'binance-api-node';
 import Highcharts from 'highcharts';
@@ -18,12 +19,15 @@ Highcharts.Pointer.prototype.reset = function() {
 /**
  * Highlight a point by showing tooltip, setting hover state and draw crosshair
  */
-Highcharts.Point.prototype.highlight = function(event) {
-  event = this.series.chart.pointer.normalize(event);
-  this.onMouseOver(); // Show the hover marker
-  this.series.chart.tooltip.refresh(this); // Show the tooltip
-  this.series.chart.xAxis[0].drawCrosshair(event, this); // Show the crosshair
-};
+// Highcharts.Point.prototype.highlight = debounce(function(event) {
+//   if (this) {
+//     event = this.series.chart.pointer.normalize(event);
+//     console.log(this);
+//     this.onMouseOver(); // Show the hover marker
+//     this.series.chart.tooltip.refresh(this); // Show the tooltip
+//     this.series.chart.xAxis[0].drawCrosshair(event, this); // Show the crosshair
+//   }
+// }, 500);
 
 if (typeof Highcharts === 'object') {
   stockInit(Highcharts);
@@ -37,7 +41,10 @@ Vue.prototype.$binanceApi = Binance({
   apiSecret: process.env.VUE_APP_BINANCE_API_SECRET
 });
 
-new Vue({
+const app = new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app');
+
+export default app;
