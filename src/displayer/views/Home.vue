@@ -22,7 +22,11 @@
         @onChart="addChart"
       />
       <!-- <Chart v-if="selectedChart" :chartOptions="selectedChart" /> -->
-      <div v-if="strategiesChart.length">
+      <div
+        v-if="strategiesChart.length"
+        @mouseover="highchartTooltip"
+        @mouseleave="highchartTooltip"
+      >
         <Chart
           v-for="(strategyChart, index) in strategiesChart"
           :key="index"
@@ -45,12 +49,13 @@
 
 <script>
 import _ from 'lodash';
-import StrategiesRunner from '@/strategies';
+import { CandlesParser, Strategies } from '@/strategies';
 import CandlesChart from '@/displayer/components/CandlesChart';
 import StockChart from '@/displayer/components/StockChart';
 import Chart from '@/displayer/components/Chart';
 import CandleInfo from '@/displayer/components/CandleInfo';
 import { INTERVALS, SYMBOLS } from '@/displayer/utils/var';
+import Highcharts from 'highcharts';
 
 export default {
   name: 'Home',
@@ -66,6 +71,9 @@ export default {
     }
   },
   methods: {
+    highchartTooltip(e) {
+      console.log(e);
+    },
     addChart(newChart) {
       this.charts.push(newChart.chart);
     },
@@ -102,7 +110,7 @@ export default {
       }
     },
     runStrategies() {
-      for (const Strategy of StrategiesRunner.Strategies) {
+      for (const Strategy of Strategies) {
         const strategy = new Strategy();
         const {
           refChart,
@@ -164,9 +172,7 @@ export default {
         limit: 1000
       });
 
-      let { candlesChart, analysedCandles } = StrategiesRunner.CandlesParser(
-        candles
-      );
+      let { candlesChart, analysedCandles } = CandlesParser(candles);
 
       this.candlesStockChart = {
         xAxis: {
